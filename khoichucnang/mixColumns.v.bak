@@ -1,0 +1,50 @@
+module mixColumns (
+    input  [127:0] state_in,
+    output [127:0] state_out
+);
+
+    // Hàm nhân trong GF(2^8) theo Rijndael field
+    function [7:0] gmul;
+        input [7:0] a, b;
+        integer i;
+        reg [7:0] p;
+        begin
+            p = 8'd0;
+            for (i = 0; i < 8; i = i + 1) begin
+                if (b[0]) p = p ^ a;
+                if (a[7]) a = (a << 1) ^ 8'h1b;
+                else      a = a << 1;
+                b = b >> 1;
+            end
+            gmul = p;
+        end
+    endfunction
+
+    integer i;
+    reg [7:0] a[0:15];  // Input state (column-major order)
+    reg [7:0] r[0:15];  // Output state
+
+    always @(*) begin
+        // Tách input thành mảng byte
+        for (i = 0; i < 16; i = i + 1)
+            a[i] = state_in[127 - i*8 -: 8];
+
+        // Thực hiện MixColumns theo từng cột
+        for (i = 0; i < 4; i = i + 1) begin
+            r[i*4 + 0] = gmul(8'h02, a[i*4 + 0]) ^ gmul(8'h03, a[i*4 + 1]) ^ a[i*4 + 2] ^ a[i*4 + 3];
+            r[i*4 + 1] = a[i*4 + 0] ^ gmul(8'h02, a[i*4 + 1]) ^ gmul(8'h03, a[i*4 + 2]) ^ a[i*4 + 3];
+            r[i*4 + 2] = a[i*4 + 0] ^ a[i*4 + 1] ^ gmul(8'h02, a[i*4 + 2]) ^ gmul(8'h03, a[i*4 + 3]);
+            r[i*4 + 3] = gmul(8'h03, a[i*4 + 0]) ^ a[i*4 + 1] ^ a[i*4 + 2] ^ gmul(8'h02, a[i*4 + 3]);
+        end
+    end
+
+    // Ghép lại output
+    generate
+        genvar j;
+        for (j = 0; j < 16; j = j + 1) begin : OUT
+            assign state_out[127 - j*8 -: 8] = r[j];
+        end
+    endgenerate
+
+endmodule
+
