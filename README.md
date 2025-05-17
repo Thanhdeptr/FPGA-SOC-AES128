@@ -155,7 +155,7 @@ end
 
 ---
 
-###️ Address Map
+### Address Map
 
 This module uses 32-bit addressable registers with the following mapping:
 
