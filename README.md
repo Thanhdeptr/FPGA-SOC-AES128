@@ -196,7 +196,7 @@ This module uses 32-bit addressable registers with the following mapping:
 
 The `done` flag is cleared automatically after it is read once.
 
-![Waveform - Avalon Wrapper](images/wf_avalonwrapper.png)
+![Waveform - Avalon Wrapper](image/wf_avalonwrapper.png)
 
 ## AES128 Hardware Encryption on DE2 Kit
 
